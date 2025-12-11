@@ -86,6 +86,12 @@ also available from the configuration server. Select 'Docs' from the main
 menu.
 
 
+Configuring the System
+----------------------
+
+./Scripts/run_config.srvr.sh
+
+
 Running the System
 ------------------
 
@@ -98,22 +104,16 @@ Stopping the system
 ./Scripts/yava_stop.sh
 
 
-Configuring the System
-----------------------
-
-./Scripts/run_config.srvr.sh
-
-
 Notes:
 (1) If you choose to use a remote microphone you must install ffmpeg as this 
 utility is used to convert the webm files typically coming from a browser to
-mp4 format. ffmpeg is not required if you run the local recognizer.
+wav format. ffmpeg is not required if you run the local recognizer.
 
 (2) OSX users must change the aplay command to afplay and the arecord command
-to afrecord in the yava.yml file. This may be done by editing the file 
+to afrecord (or rec) in the yava.yml file. This may be done by editing the file 
 directly or using the configuration server. 
 
-(3) If you plan on using a remote microphone and remore speaker than you do 
-not need to worry about the aplay or arecord command as they are only used
-when you run locally. 
+(3) If you plan on using a remote microphone and remote speaker than you do 
+not need to worry about the play wav file (aplay) or record wav file (arecord)
+commands as they are only used when you run the speaker and microphone locally.
 
