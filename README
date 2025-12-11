@@ -5,66 +5,67 @@ __   __ ___     _____  ____
   |_/_/   \_\_/  \___/|____/
 
 Introduction
+------------
 
-YAVOS (yet another voice operating system) is an open source, privacy 
-respecting framework which makes it easy to develop voice enabled applications.
+YAVOS is an open source, privacy respecting framework which makes it easy to 
+develop voice enabled applications.
 
-All services may be configured to run either locally or remotely. Local services 
-may take advantage of a GPU if one is available and provide free transcription 
-(either STT or TTS) while remote services typically require a paid API key but
-consume less local resource and provide faster response times. 
-
-YAVOS is simply a collection of independent processes which communicate using a 
-message bus. A message bus is a standard websocket server. The YAML file 'yavos.yml'
-(located in the Config/ directory) controls the YAVOS run time environment which 
-allows for the use of wav input from either a remote source, like a Javascript 
-application running in a browser, or a local source like the microphone on the
-computer running YAVOS.
-
-Likewise, output may be sent to a local device like the YAVOS host or a remote 
-device like a browser or an embedded IOT application running on any web socket
-capable device.
-
-YAVOS is a framework which provides the input and output of wav data either 
-local or remotely. In between are the two main services; speech to text (STT)
-and text to speech (TTS). It should be noted that input and output wav data
-may come from both local and remote sources if so desired. For example, a smart 
-microphone in the bedroom running in a browser may produce output which is played 
-both on the YAVOS host and the remote browser as well as any other device
-listening for wav output messages on the audio output message bus. 
+YAVOS supports local or remote microphones and speakers and local or remote
+speech to text (STT) and text to speech (TTS) services enabling free STT and
+TTS for local, edge or cloud based devices.
 
 
 Installation
+------------
 
 Assuming you have the yavos.tgz file in the current directory and this is where 
 you want to install the system run the following commands.
 
 
 tar xzfv yavos.tgz
+
 cd YAVOS
+
+./install.sh
+
+
+If you choose to clone the repository rather than install from a tgz file.
+
+git clone git@github.com:PrivoxAnon1/YAVOS.git
+
+cd YAVOS
+
 ./install.sh
 
 
 Test the Install
+----------------
 
 To test if the system is operational, change into the yavos/ directory
 (YAVOS/yavos/) and run the following commands.
 
 source ../venv_yavos/bin/activate
+
 export PYTHONPATH=.
+
 ./Scripts/yavos_start.sh
+
 python Examples/echo/echo.py
 
 This should echo whatever you say.
 
+Note - all commands are run from the base directory YAVOS/yavos/.
+
 
 Getting Started
+---------------
 
 By default YAVOS is configured to run locally. This means the microphone 
 on the server running YAVOS is used as well as the speaker connected to the
 YAVOS system. Additionally, all speech to text (STT) and text to speech (TTS)
-is also done locally. Local STT is provided by Whisper and the 'small' model 
-is used. For local TTS the default is Piper and the lessac medium voice is used. 
+is performed locally. By default local STT is provided by Whisper or Vosk.
+For local TTS the default is Piper or Coqui. Additional modules are easily 
+added.
 
 These options may be changed by either directly editing the yava.yml file
 or by running the configuration server. The configuration server is a 
@@ -73,7 +74,7 @@ you to configure the system and provides additional functionality like
 monitoring the message bus or running the microphone and speaker from a 
 web browser.
 
-To run the config server from YAVOS/yavos/, run the following command
+To run the config server from YAVOS/yavos/ run the following command
 
 ./Scripts/run_config_srvr.sh
 
@@ -86,16 +87,19 @@ menu.
 
 
 Running the System
+------------------
 
 ./Scripts/yavos_start.sh
 
 
 Stopping the system
+-------------------
 
 ./Scripts/yava_stop.sh
 
 
 Configuring the System
+----------------------
 
 ./Scripts/run_config.srvr.sh
 
