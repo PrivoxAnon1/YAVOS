@@ -1,0 +1,6 @@
+The message bus is a simple websocket server.
+
+Messages are directed (not broadcast), however
+all messages are also sent to the system monitor 
+endpoint if present.
+

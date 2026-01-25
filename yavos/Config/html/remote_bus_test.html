@@ -1,0 +1,301 @@
+<html><head><script>
+var mediaStream;
+//VOICE_MIN_DECIBELS      = -35;
+VOICE_MIN_DECIBELS      = -45;
+DELAY_BETWEEN_DIALOGS   = 400;
+DIALOG_MAX_LENGTH       = 60*1000;
+MEDIA_RECORDER          = null;
+IS_RECORDING            = false;
+audioChunks = [];
+ACTIVE = "green";
+INACTIVE = "red";
+
+var wsUri = ""; 
+var websocket = '';
+
+var websocketSpkr = '';
+
+
+function getRandomArbitrary(min, max) {
+  let rn = Math.random() * (max - min) + min;
+  rn = rn.toString().replace(".","");
+  return rn;
+}
+
+function stopSpeaker(){
+  websocketSpkr.close();
+  document.getElementById("speaker_active").style.backgroundColor=INACTIVE;
+}
+
+function startSpeaker(){
+  document.getElementById("speaker_active").style.backgroundColor=ACTIVE;
+  //const wsUriSpkr = "ws://localhost:9875"; 
+  //const wsUriSpkr = "ws://" + document.getElementById("spkr_host").value + ":" + document.getElementById("spkr_port").value; 
+  const wsUriSpkr = document.getElementById("speaker_protocol").value  + document.getElementById("spkr_host").value + ":" + document.getElementById("spkr_port").value; 
+				console.log("XXXXXXXXX URI is " + wsUriSpkr);
+  try {
+    websocketSpkr = new WebSocket(wsUriSpkr);
+    spkrEvents();
+  } catch(error) {
+    console.log(error);
+  }
+}
+
+function spkrEvents(){
+    websocketSpkr.onopen = (event) => {
+      console.log("WebSocket speaker connection opened:", event);
+    };
+
+    websocketSpkr.onmessage = (event) => {
+      let data = JSON.parse(event.data);
+      console.log("Got speaker msg", data);
+      let filename = data['data']['filename'];
+      stopRecording();
+      const rstr = getRandomArbitrary(1, 65535);
+      filename = filename + "?" + rstr;
+      const audio = new Audio(filename); 
+      audio.addEventListener('ended', () => {
+        console.log('Audio playback finished!');
+	startRecording();
+      });
+      audio.play();
+    };
+
+    websocketSpkr.onclose = (event) => {
+      console.log("WebSocket speaker connection closed:", event);
+    };
+
+    websocketSpkr.onerror = (error) => {
+      console.error("WebSocket speaker error:", error);
+    };
+}
+
+
+function micEvents(){
+  websocket.onopen = (event) => {
+    console.log("WebSocket connection opened:", event);
+    document.getElementById("connected").style.backgroundColor=ACTIVE;
+  };
+
+  websocket.onmessage = (event) => {
+    document.getElementById("sending").style.backgroundColor=INACTIVE;
+    if (event.data.startsWith("TXT")){
+      document.getElementById("user_input").innerHTML = event.data;
+    } else {
+      console.log("Error! Unexpected Message from server:", event.data);
+    }
+  };
+
+  websocket.onclose = (event) => {
+    console.log("WebSocket connection closed:", event);
+    document.getElementById("connected").style.backgroundColor=INACTIVE;
+  };
+
+  websocket.onerror = (error) => {
+    console.error("WebSocket error:", error);
+    document.getElementById("connected").style.backgroundColor=INACTIVE;
+  };
+}
+
+
+function sendMessage(message) {
+  if (message.size > 15000){
+    if (websocket.readyState === WebSocket.OPEN) {
+        console.log("Send message");
+        document.getElementById("sending").style.backgroundColor=ACTIVE;
+        document.getElementById("listening").style.backgroundColor=INACTIVE;
+	// notify it is webm data
+        websocket.send("BIN WEB");
+        websocket.send(message);
+        websocket.send("YaENDvO");
+        console.log("message sent");
+        document.getElementById("sending").style.backgroundColor=INACTIVE;
+    } else {
+        console.warn("WebSocket not open. Cannot send message.");
+    }
+  } else {
+    console.log("too small to send");
+    startRecording();
+  }
+}
+
+function startRecording(){
+    console.log("Start Recording");
+let micHost = document.getElementById("mic_host").value;
+let micPort = document.getElementById("mic_port").value;
+let micProtocol = document.getElementById("mic_protocol").value;
+//wsUri = "ws://localhost:9876"; 
+//wsUri = "ws://" + micHost + ":" + micPort; 
+wsUri = micProtocol + micHost + ":" + micPort; 
+
+websocket = new WebSocket(wsUri);
+micEvents();
+    audioChunks = [];
+    document.getElementById("listening").style.backgroundColor=ACTIVE;
+    IS_RECORDING = true;
+    record();
+}
+
+function stopRecording(){
+    console.log("Stop Recording");
+    document.getElementById("listening").style.backgroundColor=INACTIVE;
+    IS_RECORDING = false;
+    if(MEDIA_RECORDER !== null)
+        MEDIA_RECORDER.stop();
+}
+
+function record(){
+    navigator.mediaDevices.getUserMedia({ audio: true })
+    .then(stream => {
+        mediaStream = stream;
+
+        //start recording:
+        MEDIA_RECORDER = new MediaRecorder(stream);
+        MEDIA_RECORDER.start();
+        
+        //save audio chunks:
+        audioChunks = [];
+        MEDIA_RECORDER.addEventListener("dataavailable", event => {
+            audioChunks.push(event.data);
+        });
+        
+        //analisys:
+        const audioContext      = new AudioContext();
+        const audioStreamSource = audioContext.createMediaStreamSource(stream);
+        const analyser          = audioContext.createAnalyser();
+        analyser.minDecibels    = VOICE_MIN_DECIBELS;
+        audioStreamSource.connect(analyser);
+        const bufferLength      = analyser.frequencyBinCount;
+        const domainData        = new Uint8Array(bufferLength);
+        
+        //loop:
+        let lTime              = new Date();
+        let startTime,
+            lastDetectedTime    = lTime.getTime();
+        let anySoundDetected    = false;
+        const detectSound       = () => {
+            
+            //recording stoped by user:
+            if(!IS_RECORDING)
+                return;
+
+            lTime = new Date();
+            currentTime = lTime.getTime();
+            
+            // time out:
+            if(currentTime > startTime + DIALOG_MAX_LENGTH){
+		console.log("TIME OUT");
+		audioChunks = [];
+                return;
+            }
+
+            // a dialog detected:
+            if( anySoundDetected === true &&
+                currentTime > lastDetectedTime + DELAY_BETWEEN_DIALOGS
+                ){
+                MEDIA_RECORDER.stop();
+                return;
+            }
+            
+            //check for detection:
+            analyser.getByteFrequencyData(domainData);
+            for(let i = 0; i < bufferLength; i++)
+                if(domainData[i] > 0){
+                    anySoundDetected = true;
+                    lTime = new Date();
+                    lastDetectedTime = lTime.getTime();
+                }
+            
+            //continue the loop:
+            window.requestAnimationFrame(detectSound);
+        };
+        window.requestAnimationFrame(detectSound);
+
+        //stop event:
+        MEDIA_RECORDER.addEventListener('stop', () => {
+            // stop all the tracks:
+            stream.getTracks().forEach(track => track.stop());
+            if(!anySoundDetected) return;
+            // send to server:
+            const audioBlob = new Blob(audioChunks, {'type': 'audio/webm'});
+            console.log("Blob size is " + audioBlob.size);
+            sendMessage(audioBlob);
+            audioChunks = [];
+	    startRecording();
+        });
+
+    });
+}
+
+function silenceChanged(){
+    let silenceDb = parseInt( document.getElementById("silence").value ) * -1;
+    document.getElementById("slider_value").innerHTML = silenceDb;
+    VOICE_MIN_DECIBELS = silenceDb;
+    stopRecording();
+    startRecording();
+}
+</script></head><body>
+<a href="#" style="text-decoration:none;text:black;" onclick="window.location='/';">
+<pre>
+__   __ ___     _____  ____
+\ \ / // \ \   / / _ \/ ___|
+ \ V // _ \ \ / / | | \___ \
+  | |/ ___ \ V /| |_| |___) |
+  |_/_/   \_\_/  \___/|____/
+</pre>
+</a>
+<br/>
+<div style="float:left;border:1px solid black;padding-left:20px;margin-left:20px;">
+	<h1>Test Remote Mic</h1>
+	<br/>
+	Type: <select id=mic_protocol><option value="ws://">Normal</option><option value="wss://">Secure</option></select>
+	&nbsp; &nbsp; 
+	Host: <input id=mic_host type=text> &nbsp; &nbsp; Port: <input id=mic_port type=text size=5>
+	&nbsp; &nbsp;
+	<br/><br/>
+	Silence Sensitivity:  <span id="slider_value"></span><br/>
+	-25dB <input type="range" min="25" max="85" value="45" class="slider" id="silence" onchange="silenceChanged();"> -95dB
+	&nbsp; &nbsp;
+	<br/><br/>
+	<button onclick="startRecording();">Start Recording</button>
+	&nbsp; &nbsp;
+	&nbsp; &nbsp;
+	&nbsp; &nbsp;
+	<button onclick="stopRecording();">Stop Recording</button>
+	&nbsp; &nbsp;
+	<br/><br/>
+	Connected: <span style="background-color:red;" id=connected> &nbsp; &nbsp; &nbsp; </span>
+	&nbsp; &nbsp;
+	Sending: <span style="background-color:red;" id=sending> &nbsp; &nbsp; &nbsp; </span>
+	&nbsp; &nbsp;
+	Listening: <span style="background-color:red;" id=listening> &nbsp; &nbsp; &nbsp; </span>
+	&nbsp; &nbsp;
+	<br/><br/>
+	&nbsp; &nbsp;
+	<span id=user_input></span>
+	<br/><br/>
+</div>
+<div style="float:left;padding-left:50px;">
+	&nbsp; &nbsp; 
+</div>
+<div style="float:left;border:1px solid black;padding-right:20px;margin-left:20px;padding-left:20px;">
+	<h1>Test Remote Speaker</h1>
+	<br/>
+	Type: <select id=speaker_protocol><option value="ws://">Normal</option><option value="wss://">Secure</option></select>
+	&nbsp; &nbsp; 
+	Host: <input id=spkr_host type=text> &nbsp; &nbsp; Port: <input id=spkr_port type=text size=5>
+	&nbsp; &nbsp;
+	<br/><br/>
+	<button onclick="startSpeaker();">Start Speaker</button>
+	&nbsp; &nbsp;
+	&nbsp; &nbsp;
+	&nbsp; &nbsp;
+	<button onclick="stopSpeaker();">Stop Speaker</button>
+	&nbsp; &nbsp;
+	<br/><br/>
+	Active: <span style="background-color:red;" id=speaker_active> &nbsp; &nbsp; &nbsp; </span>
+	<br/><br/>
+</div>
+
+</body></html>
+

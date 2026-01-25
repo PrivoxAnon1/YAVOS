@@ -1,0 +1,29 @@
+AudioInBus: public
+AudioInPort: '9876'
+AudioOutBus: public
+AudioOutPort: '9875'
+BargeIn: false
+FfmpegCmd: ffmpeg
+LocalSPKR: true
+LogLevel: e
+MicLevelCmd: pactl set-source-volume $(pactl info | grep "Default Source" | cut -d " " -f3) %s
+MicLocal: true
+MicRemote: false
+MicVad: Loose
+MinConf: '6.5'
+MsgBus: public
+MsgBusPort: '4000'
+PlayWavCmd: aplay %s  >/dev/null 2>&1
+RecordWavCmd: arecord
+RemoteSPKR: false
+STT: local
+STTKey: /home/ken/YAVA/Keys/open-ai-key.txt
+STTModel: small.en
+STTService: whisper
+STTUseGPU: true
+Skills: []
+SpkrLevelCmd: amixer -D pulse sset Master %s
+TTS: local
+TTSKey: /home/ken/YAVA/Keys/aws_polly.key
+TTSService: piper
+TTSVoice: en_US-lessac-high.onnx

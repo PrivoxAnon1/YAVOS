@@ -1,0 +1,50 @@
+<html>
+	<head>
+	</head>
+	<body>
+<!-- yava logo -->
+<a href="#" style="text-decoration:none;text:black;" onclick="window.location='../';">
+<pre>
+__   __ ___     _____  ____
+\ \ / // \ \   / / _ \/ ___|
+ \ V // _ \ \ / / | | \___ \
+  | |/ ___ \ V /| |_| |___) |
+  |_/_/   \_\_/  \___/|____/
+</pre>
+</a>
+<!-- end yava logo -->
+<br/>
+
+		<h1>Audio Input Bus Protocol</h1>
+		Devices which wish to provide audio data into the system must be able to connect to a web socket server and communicate binary data. The audio input bus recognizes four types of binary input.
+		<ul>
+			<li>WEB - webm data. typically produced by browsers</li>
+			<li>WAV - wav data. any format will be fine</li>
+			<li>MP3 - mp3 audio data</li>
+			<li>MP4 - mp4 video data</li>
+		</ul>
+		<br/>
+		The binary data format is communicated from the smart microphone to the audio input bus in the initial data exchange between the smart microphone and the audio input server as described below.
+		Note smart microphones do not provide speech recognition. This is done on the YAVOS system. Smart microphones must provide silence detection. This is typically done using webrtcvad but simple alternatives are also suitable. 
+		<br/><br/>
+
+		<h2>Message Delimiters</h2>
+		Messages start with a 7 byte sequence and end with a 7 byte sequence. In between binary data is sent. Chunking may be required if audio data is too long for single web socket packets. 
+		<ul>
+			<li>BIN WEB - webm data follows.</li>
+			<li>BIN WAV - wav data follows</li>
+			<li>BIN MP3 - mp3 audio data follows</li>
+			<li>BIN MP4 - mp4 video data follows</li>
+			<li>YaENDvO - end of the binary data stream</li>
+		</ul>
+		<br/><br/>
+
+		<h2 id=smart_mic>Smart Microphone Operation</h2>
+		A smart microphone first connects to the audio input bus and then begins detecting human speech. Once the smart microphone detects a human utterance it first sends a 7 bye sequence to notify the audio input processor that it is about to send it binary data. This 7 byte sequence must be the string 'BIN XXX' where XXX is one of WEB, WAV, MP3, or MP4 indicating the type of data it is sending.
+		<br/><br/>
+		Once the binary data has been sent the smart microphone must send another 7 byte string indicating the binary data transfer is complete. This 7 byte string is always <b>YaENDvO</b>. It must be this exact 7 byte string and it is case sensitive. Failure to provide this string in this exact format will cause a synchronization error on the audio input bus for this connection. 
+		<br/><br/>
+
+
+	</body>
+</html>

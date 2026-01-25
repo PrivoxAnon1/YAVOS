@@ -1,0 +1,63 @@
+The system is configurable regarding TTS and STT drivers.
+
+To add a driver you simply need to create a sub directory 
+under either Local/ or Remote/ depending on whether your
+driver is for a local or remote service. The configuration
+server will automatically pick them up and they will be 
+available on the configuration server.
+
+The name of the directory is the name that will show up
+on the configuration server. That directory must have a 
+file named "tts_driver" (or stt_driver for STT) and it
+must also contain a file named __init__.py (which may
+be empty). Any other data your service requires (like
+model files) must be located in this directory as well. 
+
+Here is an example of the piper TTS service directory
+
+   2 Nov 24 14:53 __init__.py
+4096 Oct 29 21:30 onnx_models
+ 124 Oct 29 21:31 test_tts.sh
+ 556 Nov 24 15:02 tts_driver.py
+
+The tts_driver file MUST be present and MUST conform 
+to the following structure.
+
+class TTSDriver:
+    voices = ["en_US-amy-medium.onnx",]
+
+    def __init__(self, service='default_name', voice='default_voice', api_key=None_or_FilePath):
+
+    def get_models(self):
+        return self.model_names
+
+    def transcribe(self, text, wav_filename):
+        wav_filename = "Config/tts_out/" + wav_filename
+       	# do transcription here, save to filename
+        return wav_filename
+
+In other words it MUST be of class TTSDriver and it MUST provide a 
+transcribe() method which takes in a text string and produces a 
+wav file in the directory "Config/tts_out" named wav_filename and
+it must contain a class variable named 'voices' which is a list of
+voices the tts driver supports.
+
+
+STT drivers are very similar. Here is an abbreviated version of the 
+Whisper speech to text (STT) driver.
+
+class STTDriver:
+    model_names = ["tiny", "tiny.en",]
+
+    def __init__(self, model='tiny.en', use_gpu=False, api_key=None):
+        self.device='cpu'
+        if str(use_gpu).lower() == 'true':
+            self.device='cuda'
+        self.model = whisper.load_model(self.model_name, device=self.device)
+
+    def get_models(self):
+        return self.model_names
+
+    def transcribe(self, wav_filename):
+        return self.model.transcribe(wav_filename, fp16=False, language='English')['text'].strip()
+

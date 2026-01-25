@@ -1,0 +1,64 @@
+<html>
+        <head>
+        </head>
+        <body>
+<!-- yava logo -->
+<a href="#" style="text-decoration:none;text:black;" onclick="window.location='../';">
+<pre>
+__   __ ___     ___
+\ \ / // \ \   / / \
+ \ V // _ \ \ / / _ \
+  | |/ ___ \ V / ___ \
+  |_/_/   \_\_/_/   \_\
+</pre>
+</a>
+<!-- end yava logo -->
+<br/>
+<h1>Yet Another Voice Assistant</h1>
+<p>
+YAVA is a complete voice assistant framework which makes the development of voice enabled applications (also known as skills) extremely easy. It runs on top of the YAVOS framework and also provides a privacy respecting open source framework for you to use as you please. YAVA comes from the family of Mycroft/OVOS voice assistants and maintains a number of conventions supported by these older platforms like fallback operation, media and query skill abstractions and intent matching, however, both YAVOS and YAVA are very different in that they are complete rewrites and skills from these frameworks are not supported natively. 
+</p>
+<p>
+A key difference is how intents are managed. An intent may be defined as the mapping of an utterance to an endpoint. Typically the endpoint is a skill. In Mycroft and OVOS intents are represented as regular expressions. In PriVoice (a previous version of YAVA), intents were represented as the tuple (sentence_type, noun, verb) but in YAVA they are represented as simple sentences which are indicitive of sentences which should be mapped to the skill/endpoint. Each skill has a corresponding text file which contains sentences which are used to train a transformer based classifier. This "intent classifier" is how utterances are mapped to an endpoint in the YAVA system. This implies that the intent classifier (transformer model) must be retrained each time the skills change (like if you add or remove a skill) or a skill's sentences change. This is all handled automatically by the system loader and the skill devloper does not need to concern themselves with this issue. All a skill developer needs to do is create a file with about 50 sentences which are representative of what sentences the skill should respond to and the rest is handled automatically by the system.
+</p>
+
+<h1>The Skills Subsystem</h1>
+<p>
+YAVA comes with 14 default skills. Together these default skills provide a personal voice assistant with no coding necessary. You just configure which skills you would like to run and then you restart your system.
+The 14 default skills are listed below. It should be noted any or all of these skills may be replaced with a skill from your local system, a developer provided skill, or a skill from the skill store. To create a local only system only select skills which do not require an internet connection (see table below) and select local for all your services. This is the default configuration as YAVA was developed to run on smaller devices for free.
+<br/><br/>
+<center>
+<table border=1>
+        <tr><td><br/><b><u>Skill Name</u></b></td><td align=center><b><u>Requires<br/>Internet</u?</b></td><td align=center><br/><u><b>Skill Description</u></b></td></tr>
+        <tr><td>Time and Date</td><td align=center>No</td><td>Provides basic time and date functionality</td></tr>
+        <tr><td>Timers</td><td align=center>No</td><td>Provides basic timer functionality</td></tr>
+        <tr><td>Alarms</td><td align=center>No</td><td>Provides basic alarm functionality</td></tr>
+        <tr><td>Volume</td><td align=center>No</td><td>Controls output channel volume</td></tr>
+        <tr><td>Contacts</td><td align=center>No</td><td>Create and manage contacts</td></tr>
+        <tr><td>Reminders</td><td align=center>No</td><td>Create and manage reminders</td></tr>
+        <tr><td>Home Assistant</td><td align=center>No</td><td>Requires home assistant server</td></tr>
+        <tr><td>Personal Assistant</td><td align=center>No</td><td>Learns you as a person to provide a personalized voice assistant</td></tr>
+        <tr><td>Weather</td><td align=center>Yes</td><td>Provides basic weather functionality</td></tr>
+        <tr><td>Muisc</td><td align=center>Yes</td><td>Basic internet based music skill</td></tr>
+        <tr><td>Radio</td><td align=center>Yes</td><td>Open Radio skill</td></tr>
+        <tr><td>Email</td><td align=center>Yes</td><td>Compose, send and receive email</td></tr>
+        <tr><td>Duck Duck Go</td><td align=center>Yes</td><td>A fallback skill sends request to search engine. typically the last fallback skill in the chain.</td></tr>
+        <tr><td>Wiki</td><td align=center>Yes</td><td>Typically the first fallback skill in the chain. sends request to wikipedia</td></tr>
+</table>
+Note - a local static version of wiki is also under development which will not require an internet connection.
+</center>
+<br/>
+As may seen from the table above, some skills will require an internet connection to work. Most do not as both YAVOS and YAVA were designed with smaller devices in mind. In fact the smallest installation would use remote services for STT and TTS and fit in an embedded device with limited resources. The default system configuration, however, assumes local services and will require more local resources. These local resources could be as small as a Raspberry pi. Usually a desktop or laptop works better for local operation.
+</p>
+<p>
+If you wish to run skills you do not use the min_run.sh script but rather you use the ./Scripts/yavos_start.sh command. This command not only loads the skills but also runs the intent subsystem and system skill which skills require to peacefully coexist. When you build a simple voice application you take on the responsibility of coordination of the input and output channels and how the system responds to input but then you run the YAVA skills subsystem, all this is automatically taken care of for the skills by the default skills subsystem. See the Developer section below for more detail on developing skills.
+
+</p>
+<h1>Developing Skills</h1>
+<p>
+Skills may be developed in any language you prefer, as long as the language supports connection to a web socket server. This is common among browsers and most programming languages. Note however, that by default the message bus client is written in Python so you will need to add a message bus client for your language if you choose to create your skills using a language other than Python or Javascript (or node).
+</p>
+<br/><br/>
+<br/><br/>
+        </body>
+</html>

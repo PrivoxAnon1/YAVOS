@@ -1,0 +1,149 @@
+#!/usr/bin/python
+import datetime, json, time, asyncio, threading
+from Bus.Message import Message, msg_from_json
+from queue import Queue
+from websocket import (WebSocketApp,
+                       WebSocketConnectionClosedException,
+                       WebSocketException, enableTrace)
+
+BARK = False
+def process_inbound_messages(inbound_q, msg_handlers, skill_id, sync, terminate_object):
+    # this is where you handle bus.on() events. note, you are
+    # technically called as a thread unless you set sync to False
+    # in either case, you need to be thread safe
+    while True:
+        while inbound_q.empty():
+            if terminate_object['exit_flag']:
+                if BARK:
+                    print("Exit thread")
+                return
+            time.sleep(0.001)
+
+        msg = inbound_q.get() 
+
+        if BARK:
+            print(f"RCVD: {msg}")
+
+        # see if msg type is a registered event
+        if msg_handlers.get( msg['msg_type'], None ) is not None:
+            if sync:
+                # synchronous behavior
+                if BARK:
+                    print("Synchronous Dispatch!")
+                threading.Thread(target=msg_handlers[msg['msg_type']], args=(msg,)).start()
+            else:
+                msg_handlers[msg['msg_type']]( msg )
+        else:
+            if BARK:
+                print("Warning no message handler registered %s" % (msg,))
+            pass
+
+class MsgBusClient:
+    def __init__(self, client_id, sync=False, host='localhost', port=4000):
+        if sync:
+            if BARK:
+                print("** Warning! Synchronous Dispatch Selected for %s **" % (client_id,))
+
+        self.inbound_q = Queue()
+        self.outbound_q = Queue()
+        self.msg_handlers = {}
+        self.host = host
+        self.port = port
+        self.client_id = client_id
+        self.client = ''
+        self.status = 'Not Connected'
+        self.term_obj = {'exit_flag':False, 'status':''}
+        self.inbound_thread = threading.Thread(target=process_inbound_messages, args=(self.inbound_q, self.msg_handlers, client_id, sync, self.term_obj)).start()
+        self.connection_thread = self.run_in_thread()
+
+    def on_error(self, ws, error):
+        self.status = 'Not Connected'
+        if BARK:
+            print("MsgBusClient:Error %s = %s" % (self.client_id, error))
+        pass
+
+    def on_close(self, ws, close_status_code, close_msg):
+        self.status = 'Not Connected'
+        if BARK:
+            print("MsgBusClient: Connection closed ! %s" % (self.client_id,))
+            print("%s ---> %s" % (close_status_code, close_msg))
+
+    def on_open(self, ws):
+        self.status = 'Connected'
+        pass
+
+    def connection(self):
+        self.client = self.create_client()
+        self.client.run_forever()
+
+    def create_client(self):
+        url = f"ws://{self.host}:{self.port}/{self.client_id}"
+        return WebSocketApp(
+                            url, 
+                            on_message=self.rcv_client_msg, 
+                            on_error=self.on_error, 
+                            on_open=self.on_open, 
+                            on_close=self.on_close
+			)
+
+    def rcv_client_msg(self, wsapp, msg):
+        if self.client_id == 'skill_manager':
+            if BARK:
+                print("[%s]RECV: %s" % (self.client_id, msg))
+        self.inbound_q.put( msg_from_json( ( json.loads( msg ) ) ) )
+
+    def run_in_thread(self):
+        t = threading.Thread(target=self.connection)
+        t.daemon = True
+        t.start()
+        return t
+
+    def on(self, msg_type, callback):
+        self.msg_handlers[msg_type] = callback
+
+    def send(self, msg_type, target, msg):
+        self.client.send( json.dumps( Message(msg_type, self.client_id, target, msg) ) )
+
+    def close(self):
+        self.status = 'Not Connected'
+        self.client.close()
+
+    def exit(self):
+        self.close()
+        self.term_obj['exit_flag'] = True
+        try:
+            self.inbound_thread.join()
+        except:
+            if BARK:
+                print("Thread already gone")
+
+def my_callback(msg):
+    print(f"Should not get this msg ---> {msg}")
+
+
+if __name__ == "__main__":
+    bus_id = 'test_client'
+    mbc = MsgBusClient(bus_id, sync=False)
+    mbc.on('skill', my_callback)
+    while mbc.status != 'Connected':
+        print(f"** {mbc.status} **")
+        time.sleep(1)
+
+    msg = {
+                'error':'',
+                'subtype':'boo',
+                'skill_id':bus_id,
+                'from_skill_id':bus_id,
+                }
+
+    mbc.send('skill', bus_id, msg)
+    print(f"** Sent msg, status is {mbc.status} **")
+    x = 10
+    while x > 0:
+        x -= 1
+        time.sleep(1)
+        print("tic")
+
+    mbc.exit()
+    print("Exit program, thread should be stopped")
+

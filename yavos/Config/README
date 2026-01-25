@@ -1,0 +1,7 @@
+This should be run as a systemd service which autommatically gets restarted if necessary and is started on reboot!
+
+If you choose to run it on demand then run ./Scripts/run_config_server.sh
+
+The configuration server is a simple web application that modifies the yava.yml configuration file. It is unnecessary 
+if you choose to edit this file by hand. 
+

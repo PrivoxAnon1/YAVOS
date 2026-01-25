@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html>
+	<head>
+<style>
+.dblClass {
+	display:block;
+}
+.dblClass:hover {
+	cursor:pointer;
+	background:lightGray;
+}
+</style>
+<script src="cfg.js"></script>
+	</head>
+	<body>
+<a href="#" style="text-decoration:none;text:black;" onclick="window.location='/';">
+<pre>
+__   __ ___     _____  ____
+\ \ / // \ \   / / _ \/ ___|
+ \ V // _ \ \ / / | | \___ \
+  | |/ ___ \ V /| |_| |___) |
+  |_/_/   \_\_/  \___/|____/
+</pre>
+</a>
+	<center>
+		<h1>YAVOS System Configuration</h1>
+   		<br/>
+		<div style="align:center;position:relative;display:inline-block;">
+			<div id=mic style="border:1px solid black;float:left;padding:8px;margin:4px;">
+				<center>
+				<h2>Input</h2>
+				Microphone
+				<br/><br/>
+				Local: <input type=checkbox name=MicLocal id=MicLocal checked=checked onchange="return(handleChkChanged(this, 'mic_where_select'));">
+				&nbsp; &nbsp;
+				Remote: <input type=checkbox name=MicRemote id=MicRemote onchange="return(handleChkChanged(this, 'audio_bus_in_div'));">
+				<br/>
+				<div id=audio_bus_in_div style="display:none;">
+					<br/>
+					<b>Audio Bus In</b>
+					<br/>
+					<table width=100%>
+						<tr>
+							<td align=right>Public:</td><td><input type=radio name=AudioInBus id=public value=public checked=checked></td>
+							<td align=right>Private:</td><td><input type=radio name=AudioInBus id=private value=private></td>
+						</tr>
+						<tr>
+							<td colspan=2 align=right>Port:</td><td colspan=2><input id=AudioInPort type=text size=5 value=none></td>
+						</tr>
+					</table>
+					<br/>
+				</div>
+				<br/>
+				<div id=mic_where_select>
+					<b>Microphone Level Command</b><br/>
+					<input type=text size=20 name=MicLevelCmd id=MicLevelCmd>
+					<br/><br/>
+					<font size=-1>
+						Note: the %s placeholder is used to 
+						<br/>denote where the actual real-time 
+						<br/>value will be inserted. For example 
+						<br/>to set the Mic level on Ubuntu
+						<br/>you would enter 
+						<br/><br/><span title='pactl set-source-volume $(pactl info | grep "Default Source" | cut -d " " -f3) %s'>Hover Over This</span>
+						<br/><br/>Where '%s' will be replaced 
+						<br/>with an actual value at run time.
+						<br/>It is recommended to use a 
+						<br/>percent. For example, 20%
+					</font>
+					<br/><br/>
+				</div>
+				<br/>
+				<b>Sensitivity</b>
+				<div id=stt_sensitivity_select>
+					<select id=MicVad name=MicVad>
+						<option>Tight</option>
+						<option>Normal</option>
+						<option selected>Loose</option>
+					</select>
+				</div>
+				</center>
+			</div>
+
+			<div id=stt_div style="border:1px solid black;float:left;padding:8px;margin:4px;">
+				<center>
+				<h2>STT</h2>
+				Speech To Text
+				<br/><br/>
+				Local: <input type=radio name="STT" id="local" value="local" onchange="return(handleSttWhereChange('local'));">
+				&nbsp; &nbsp;
+				Remote: <input type=radio name="STT" id="remote" value="remote" onchange="return(handleSttWhereChange('remote'));">
+				<br/><br/>
+				<b>Transcriber</b>
+				<div id=stt_where_select>
+					<select id=STTService name=STTService>
+						<option>Whisper</option>
+					</select>
+				</div>
+				<br/><br/>
+				<b>Model</b><br/>
+				<div id=stt_model_select_div style="display:inline-block;"> 
+					<select id=STTModel name=STTModel>
+						<option>tiny</option>
+						<option selected>tiny.en</option>
+						<option>base</option>
+						<option>base.en</option>
+						<option>small</option>
+						<option>small.en</option>
+						<option>medium</option>
+						<option>medium.en</option>
+						<option>large</option>
+						<option>large-v2</option>
+					</select>
+				</div>
+				<br/><br/>
+				<div id=stt_local style="display:inline-block;">
+					Use GPU: <input name=STTUseGPU id=STTUseGPU type=checkbox>
+					<br/>
+				</div>
+				<br/>
+				<div id=stt_remote style="display:none;text-align:center;">
+					<b>API Key File</b><br/><input type=text name=STTKey id=STTKey>
+					<br/><br/>
+					&nbsp; &nbsp; <input type=file>
+				</div>
+
+				</center>
+			</div>
+
+			<div id=system style="border:1px solid black;float:left;padding:8px;margin:4px;">
+				<center>
+				<h2>System</h2>
+				System Configuration
+				<br/><br/>
+				<b>Message Bus</b>
+				<br/>
+				<table width=100%>
+					<tr>
+						<td align=right>Public:</td><td><input type=radio name=MsgBus id=public value=public checked=checked></td>
+						<td align=right>Private:</td><td><input type=radio name=MsgBus id=private value=private></td>
+					</tr>
+					<tr>
+						<td colspan=2 align=right>Port:</td><td colspan=2><input id=MsgBusPort type=text size=5 value=4000></td>
+					</tr>
+				</table>
+
+				<br/>
+				Log Level: 
+				<select id=LogLevel name=LogLevel>
+					<option value='f'>Fatal</option>
+					<option value='e'>Error</option>
+					<option value='w'>Warning</option>
+					<option value='i'>Info</option>
+					<option value='d'>Debug</option>
+					<option value='t'>Trace</option>
+				</select>
+				<br/><br/>
+				<b>Ffmpeg Command</b><br/>
+				<input id=FfmpegCmd type=text>
+				<br/><br/>
+				<b>Play Command</b><br/>
+				<input id=PlayWavCmd type=text>
+				<br/><br/>
+				<b>Record Command</b><br/>
+				<input id=RecordWavCmd type=text>
+				<br/><br/>
+				Barge In Enabled: <input type=checkbox name=BargeIn id=BargeIn>
+				<br/><br/>
+				Min Intent Confidence: <input type=text size=4 name=MinConf id=MinConf>
+				</center>
+			</div>
+
+			<div id=tts_div style="border:1px solid black;float:left;padding:8px;margin:4px;">
+				<center>
+				<h2>TTS</h2>
+				Default System Voice
+				<br/><br/>
+				Local: <input type=radio name=TTS id=local value=local checked=checked onchange="return(handleTtsWhereChange('local'));">
+				&nbsp; &nbsp;
+				Remote: <input type=radio name=TTS id=remote value=remote onchange="return(handleTtsWhereChange('remote'));">
+				<br/><br/>
+				<b>Service</b>
+				<div id=tts_where_select>
+					<select id=TTSService name=TTSService>
+						<option>Piper</option>
+						<option>Custom</option>
+					</select>
+				</div>
+
+	 			<br/>
+				<div id=tts_local style="display:inline-block;">
+					Use GPU: <input name=TTSUseGPU id=TTSUseGPU type=checkbox>
+					<br/>
+				</div>
+				<div id=tts_remote style="display:none;text-align:center;">
+					<br/>
+					<b>API Key File</b>
+					<br/>
+					<input id=TTSKey type=text>
+					<br/><br/>
+					&nbsp; &nbsp; <input type=file>
+				</div>
+				<br/><br/>
+				<b>Voice</b>
+				<div id=tts_voice_select_div>
+					<select id=TTSVoice name=TTSVoice>
+						<option>Lessac</option>
+						<option>Joe</option>
+						<option>Kusal</option>
+						<option>Amy</option>
+						<option>Ryan</option>
+						<option>Custom</option>
+					</select>
+					<br/><br/>
+				</div>
+				</center>
+			</div>
+
+			<div id=speaker style="border:1px solid black;float:left;padding:8px;margin:4px;">
+				<center>
+				<h2>Output</h2>
+				Speaker
+				<br/><br/>
+				Local: <input type=checkbox name=LocalSPKR id=LocalSPKR checked=checked onchange="return(handleChkChanged(this, 'speaker_where_select'));">
+				&nbsp; &nbsp;
+				Remote: <input type=checkbox name=RemoteSPKR id=RemoteSPKR  onchange="return(handleChkChanged(this, 'audio_bus_out_div'));">
+				<br/>
+				<div id=audio_bus_out_div style="display:none;">
+					<br/>
+					<b>Audio Bus Out</b>
+					<br/>
+					<table width=100%>
+						<tr>
+							<td align=right>Public:</td><td><input type=radio name=AudioOutBus id=public value=public checked=checked></td>
+							<td align=right>Private:</td><td><input type=radio name=AudioOutBus id=private value=private></td>
+						</tr>
+						<tr>
+							<td colspan=2 align=right>Port:</td><td colspan=2><input id=AudioOutPort type=text size=5 value=none></td>
+						</tr>
+					</table>
+					<br/>
+				</div>
+				<br/>
+				<div id=speaker_where_select>
+					<b>Speaker Volume Command</b><br/>
+					<input type=text size=20 name=SpkrLevelCmd id=SpkrLevelCmd>
+					<br/><br/>
+					<font size=-1>
+						Note: the %s placeholder is used to 
+						<br/>denote where the actual real-time 
+						<br/>value will be inserted. For example
+						<br/>to set the speaker volume on Ubuntu
+						<br/>you would enter 
+						<br/><br/>amixer -D pulse sset Master %s
+						<br/><br/>Where '%s' will be replaced with 
+						<br/>an actual value at run time so the 
+						<br/>actual command executed would be 
+						<br/><br/>amixer -D pulse sset Master 50%
+					</font>
+					<br/>
+				</div>
+				</center>
+			</div>
+	    </div>
+
+	    <br/><br/>
+   	    <br/><br/>
+	    <div>
+		<button onclick="loadYamlFile();">Load Configuration</button> &nbsp; &nbsp; &nbsp; <button onclick="saveYamlFile();">Save Configuration</button> 
+	    </div>
+	<br/><br/>
+	</center></body>
+</html>
+

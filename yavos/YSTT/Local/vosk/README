@@ -1,0 +1,14 @@
+For Vosk Local we only include the small emglish model. The larger English model is about 1.8GB in size.
+
+You can visit the Vosk model page and download and install any of the models. Just unzip them under the models/
+directory. 
+
+Make sure to update the model names in the stt_driver.py file.
+
+TODO - make this automatic on driver instantiation by interrogating the models directory.
+
+The file names of the models are 
+
+Big English Model: vosk-model-en-us-0.22
+Small English Model: vosk-model-small-en-us-0.15
+

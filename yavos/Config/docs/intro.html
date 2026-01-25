@@ -1,0 +1,466 @@
+<html>
+	<head>
+	</head>
+	<body>
+<!-- yava logo -->
+<a href="#" style="text-decoration:none;text:black;" onclick="window.location='../';">
+<pre>
+__   __ ___     _____  ____
+\ \ / // \ \   / / _ \/ ___|
+ \ V // _ \ \ / / | | \___ \
+  | |/ ___ \ V /| |_| |___) |
+  |_/_/   \_\_/  \___/|____/
+</pre>
+</a>
+<!-- end yava logo -->
+<br/>
+
+<h1>Introduction</h1>
+<p>
+YAVOS is an open source, privacy respecting framework which makes it 
+easy to develop voice enabled applications. It provides speech to text (STT) and text to speech (TTS) and
+supports local and/or remote microphones and speakers. 
+</p>
+<p>
+All services may be configured to run either locally or remotely. Local services may take advantage of a GPU 
+if one is available and provide free transcription (either STT or TTS) while remote services typically require
+a paid API key but consume less local resource and provide faster response times. 
+</p>
+<p>
+YAVOS is a collection of independent processes which communicate using a websocket server known as the message bus. 
+The file 'yavos.yml' controls the YAVOS run time environment which allows for the use of wav input from either a 
+remote source, like a Javascript application running in a browser, or a local source like the microphone 
+on the computer running YAVOS.
+</p>
+<p>
+Likewise, output may be sent to a local device like the YAVOS host or a remote device like a browser or an embedded
+iOT application running on any web socket capable device.
+</p>
+<p>
+YAVOS is simply a framework which provides the input and output of wav data either local or remotely. In between
+are the two main services; speech to text (STT) and text to speech (TTS). It should be noted that input and output
+wav data may come from both local and remote sources if so desired. For example, a smart microphone in the bedroom 
+running in a browser may produce output which is played both on the YAVOS host and the remote browser as well as 
+any other device listening for wav output messages on the audio output message bus. 
+</p>
+
+<h1>Overview</h1>
+<p>
+YAVOS may be thought of as middleware which attempts to abstract out the messy details of having to deal with a 
+microphone and speaker. It also provides a somewhat abstract interface to the speech to text and text to speech 
+functions typically associated with voice applications. YAVOS is <b>not</b> a voice assistant or voice assistant 
+framework as those layers have their own unique issues to contend with like intent/endpoint matching and audio 
+channel contention. 
+</p>
+<p>
+A minimal YAVOS software stack would look like this 
+<br/>
+<br/>
+</p>
+<center>
+<img src="yavos.png">
+</center>
+<br/>
+<br/>
+<p>
+For a more complete voice assistant application the software stack might look more like this 
+</p>
+<br/>
+<br/>
+<center>
+<img src="yava_stack.png">
+</center>
+<br/>
+<br/>
+<p>
+YAVOS itself may be configured in a variety of ways as shown below.
+<br/>
+<br/>
+</p>
+<center>
+<img src="ymulti.png">
+</center>
+<br/>
+<br/>
+
+<h1>Installation</h1>
+<p>
+Assuming you have the yavos.tgz file in the current directory and this is where you want to install the system run the following commands.
+</p>
+<pre style="font-size:150%;">
+tar xzfv yavos.tgz
+cd YAVOS
+python3 -m venv venv_yavos
+source venv_yavos/bin/activate
+pip install -r requirements.txt
+</pre>
+
+In most cases this should work, however, MocOS users may need to install a suitable alternative to aplay and arecord. Typically afplay and afrecord will suffice, however, on newer versions of MacOs you may need to install 'sox' using 'brew'. Then you should use the configuration screen to change your wav play and wav record commands. For wav recording typically the 'sox' utility 'rec' is used. Make sure to configure it to record at 16000 bps use the 16 bit integer format in mono. Consult the section below entitled "Configuring the System" to see how to change your wav in and out commands. 
+
+<h1>Running the System</h1>
+<p>
+All scripts must be run from the directory (YAVOS/yavos/). To start YAVOS run 
+<pre style="font-size:150%;">
+./Scripts/yavos_start.sh
+</pre>
+This will start the message bus, any configured wav input devices (smart microphones) and configured output devices and the STT and TTS service.
+By default the system assumes local microphone, local STT using Whisper, local TTS using Piper and local output using the speaker attached to the YAVOS host.
+Note the term <i>YAVOS Host</i> simpy refers to the computer you run YAVOS on.
+</p>
+<pre>
+$ ./Scripts/yavos_start.sh
+*** Initializing YAVOS ***
+INFO:MsgBus:Message Bus Starting Up ...
+INFO:MsgBus:Host:0.0.0.0:4000
+INFO:MsgBus:Message Bus Initialized
+INFO:websockets.server:server listening on 0.0.0.0:4000
+INFO:websockets.server:connection open
+INFO:MsgBus:('127.0.0.1', 47750) Connected: tts_svc
+INFO:websockets.server:connection open
+INFO:MsgBus:('127.0.0.1', 47766) Connected: media_svc
+INFO:websockets.server:connection open
+INFO:MsgBus:('127.0.0.1', 47776) Connected: stt_svc
+Start local Mic, vad=Normal
+Recording WAVE 'stdin' : Signed 16 bit Little Endian, Rate 16000 Hz, Mono
+Local Recognizer starting, vad mode is 2
+INFO:websockets.server:connection open
+INFO:MsgBus:('127.0.0.1', 55480) Connected: recognizer
+LocalRecognizer: wav saver is running
+*** YAVOS Started ***
+*************************************************************
+* You can run the config server using the following command *
+* ./Scripts/run_config_server.sh from a separate terminal.  *
+*************************************************************
+</pre>
+<p>
+To stop the system you run 
+</p>
+<pre style="font-size:150%;">
+./Scripts/yavos_stop.sh
+</pre>
+<br/>
+
+<h1>A Simple Voice Application</h1>
+<p>
+The easiest way to test the system is to run the echo application. This application will simply echo whatever it hears. To run the echo application run the base YAVOS system, then run the 'echo' test application as follows ...
+</p>
+<pre style="font-size:150%;">
+python Examples/echo/echo.py
+</pre>
+This will start yavos and then run the echo python script shown below.
+<br/><br/>
+Use CTL+C to stop the echo application. Then type
+<pre style="font-size:150%;">
+./Scripts/yavos_stop.sh
+
+Which will stop the YAVOS framework.
+</pre>
+<p>
+The echo application may be written in any language you like as long as it can connect to a websocket server. Keep in mind if you run this on a laptop or desktop with a standard microphone and speaker this will echo indefinitely if you set <i>Barge In Enabled</i> to True by checking the checkbox on the configuration screen. To avoid this echo either set <i>Barge In Enabled</i> to false or use headphones as the system currently does not support echo cancellation. If you <b>do</b> choose to use headphones make sure to enable Barge In. 
+</p>
+<p>
+YAVOS applications are very simple programs. This is the source code for the echo application (Examples/echo/echo.py).
+</p>
+<pre>
+import time
+from threading import Event
+from Bus.MsgBusClient import MsgBusClient
+
+class EchoSvc:
+    def my_callback(self, msg):
+        text = msg['data']['utterance']
+        self.mbc.send('tts', 'tts_svc', {'text': text, 'filename':'junk.wav'})
+
+    def __init__(self, bus_id):
+        self.bus_id = bus_id
+        self.mbc = MsgBusClient(self.bus_id, sync=False)
+        self.mbc.on('utterance', self.my_callback)
+
+        # wait for connection forever
+        while self.mbc.status != 'Connected':
+            time.sleep(1)
+
+    def stop(self):
+        self.mbc.exit()
+
+if __name__ == "__main__":
+    bus_id = 'intent_svc'
+    echo_svc = EchoSvc(bus_id)
+    Event().wait()
+</pre>
+YAVOS applications tend to run in their own python (or go or node, etc.) process though they themselves may be multithreaded. They communicate with the system and other applications using the system wide message bus. The message bus is a websocket server. 
+<br/><br/>
+In the above example we register on the message bus as the endpoint with the id <i>intent_svc</i>. This is a special endpoint in that all user utterances once converted from a wav file to text are sent to this endpoint. 
+<br/><br/>
+This id is then used to connect to the message bus as may be seen from the line "self.mbc = MsgBusClient(self.bus_id, sync=False)" in the EchoSvc constructor. The next line tells the message bus client to send all utterance messages to the call back routine named "my_callback". 
+<br/><br/>
+This call back method extracts the text from the message it receives and in turn sends this text to the text to speech (tts) service, which will ultimately play the text string.
+
+<h1>Configuring the System</h1>
+<p>
+If you would like to run the system configuration webserver open up a second terminal (a terminal other than the one you ran the yavos system from) and type the following command.
+</p>
+<pre style="font-size:150%;">
+./Scripts/run_config_server.sh
+</pre>
+<p>
+Then open up a browser, either from the YAVOS server in which case you connect to URL http://localhost:8000, or a browser on another machine, in which case you connect to the Yavos Host IP address. This is typically an address like 10.0.0.10 or 192.168.1.20. Once you connect your browser to the proper URL you should see the following screen.
+</p>
+<center>
+<div style="border:1px solid black;display:inline-block;">
+<img src=cfg_srvr.png?a=b>
+</div>
+</center>
+<p>
+From here you select "Configure System" and you will be brought to the main system configuration screen which should look like this.
+</p>
+<br/><br/>
+<center>
+<div style="border:1px solid black;display:inline-block;">
+<img src=cfg_screen.png>
+</div>
+</center>
+<p>
+Note if you change your system configuration you must restart the system for the changes to take effect. This is also true if you choose to edit the yavos.yml file manually which is not encouraged but does work.
+</p>
+
+<h2>Local Audio</h2>
+<p>
+The local speaker and microphone are accessed using native utilities. By default aplay is used to play wav files and arecord is used to record wav files. If you are a MacOS user your commands will be different so the configuration screen allows you to set the command to be run to set the microphone input level and the speaker output volume. These commands will vary based on your specific version of operating system so the table below lists some common commands for these functions.
+<br/><br/>
+<table cellspacing=4 cellpadding=4 border=1>
+	<tr><td align=center><b>Operating<br/><u>System</u></b></td><td align=center><b>Version</b></td><td><b>Function</b></td><td align=center><b><u>Command</u></b></td><td><b><u>Notes</u></b></td></tr>
+	<tr><td align=center>Ubuntu</td><td align=center>22.04</td><td>Record</td><td align=center>arecord -f s16_le -c 1 -r 16000</td><td>Default system configuration</td></tr>
+	<tr><td align=center>Ubuntu</td><td align=center>22.04</td><td>Play</td><td align=center>aplay %s  >/dev/null 2>&1</td><td>Default system configuration</td></tr>
+	<tr><td align=center>Ubuntu</td><td align=center>22.04</td><td>Set Mic</td><td align=center>pactl set-source-volume $(pactl info | grep "Default Source" | cut -d " " -f3 %s)</td><td>Requires Pulse Audio</td></tr>
+	<tr><td align=center>Ubuntu</td><td align=center>22.04</td><td>Set Speaker</td><td align=center>amixer -D pulse sset Master %s</td><td>Requires Pulse Audio to be installed</td></tr>
+	<tr><td align=center>OSX</td><td align=center>Sierra</td><td>Record</td><td align=center>rec -b 16 -c 1 -r 16000</td><td>OSX and MacOS. Note <b>rec</b> is part of <b>sox</b> which you may have to install</td></tr>
+	<tr><td align=center>OSX</td><td align=center>Sierra</td><td>Play</td><td align=center>afplay %s  >/dev/null 2>&1</td><td>Typically installed by default but may need to install xcode.</td></tr>
+	<tr><td align=center>OSX</td><td align=center>Sierra</td><td>Set Mic</td><td align=center>osascript -e 'set volume input volume %s' </td><td>OSX uses osascript</td></tr>
+	<tr><td align=center>OSX</td><td align=center>Sierra</td><td>Set Speaker</td><td align=center>osascript -e 'set volume output volume %s'</td><td>MacOS uses osascript</td></tr>
+</table>
+<br/>
+Note: Other commands and utilities may be used. This table is just an example of what some commands look like for various operating systems. See the file named "hal.py" under the "Hal/" directory for further detail on how to integrate a completely custom environment.
+<br/><br/>
+</p>
+<h2>Remote Audio</h2>
+<p>
+By default audio input and output are assumed to be local which means the microphone and speaker on the system running YAVOS, however, YAVOS also supports <b>remote audio in</b> and <b>remote audio out</b> using an <i>audio input bus</i> and an <i>audio output bus</i>. These are websocket servers that exchnage binary data. Currently these are not installed as systemd services so you must run them each from a separate terminal. The commands are as follows.
+<br/><br/>
+To run the audio output bus so audio output will be played on a remote device open a <b>new</b> terminal and run the following command.
+</p>
+<pre style="font-size:150%;">
+./Scripts/run_audio_bus_out.sh
+</pre>
+To run the audio input bus so audio input will be sent from a <a href="../html/audio_in_protocol.html#smart_mic">remote intelligent mic</a>,  open a <b>new</b> terminal and run the following command.
+</p>
+<pre style="font-size:150%;">
+./Scripts/run_audio_bus_in.sh
+</pre>
+<p>
+Note you will need remote devices to actually provide the input and output. These can be any device capable of connecting to a websocket server. An example of such devices written in Javascript may be found on the configuration server under the option <a href="../html/remote_bus_test.html">Remote Devices</a>. See the <a href="../html/audio_in_protocol.html">audio input bus protocol</a> for a detailed description of what is expected of a remote smart microphone. The audio output bus is a web socket server which sends out play commands to all connected devices. This play command is the audio out message and contains the URL of a wav file to be played. See <a href="#msg_audio_out">MSG_AUDIO_OUT</a> for the exact format of the message.
+</p>
+
+<h2>Configurable Drivers</h2>
+<p>
+YAVOS supports the concept of configurable drivers for nearly everything. A driver is simply a module which provides access to a device or service, like TTS (text to speech) or STT (speech to text). Drivers are located in their respective locations (TTS/Local/, TTS/Remote/, STT/Local/ and STT/Remote/) on the local filesystem. When placed in the proper location the driver will automatically show up in the configuration server. No further installation is required.
+</p>
+<p>
+For example if you create a drirectory under TTS/Local/ named 'coqui' then the next time you run the configuration server 'coqui' will show up as an available TTS local option. Note your driver must currently be written in Python and must have a <b>class variable</b> named <i>model_names</i> for speech to text drivers and <i>voices</i> for text to speech drivers. These are the values which will be presented as models/voices when your driver is selected on the configuration screen. Your driver Python file must be named either stt_driver.py or tts_driver.py. STT drivers must provide the class named <b>STTDriver</b> and TTS drivers must provide the class <b>TTSDriver</b>. Each class must provide a method named <b>transcribe</b>. See any of the driver files listed under the <i>YSTT/</i> or <i>YTTS/</i> directories to see what a driver file looks like.
+</p>
+<pre>
+Here is an example of the piper TTS service directory
+
+   2 Nov 24 14:53 __init__.py
+4096 Oct 29 21:30 onnx_models
+ 124 Oct 29 21:31 test_tts.sh
+ 556 Nov 24 15:02 tts_driver.py
+
+The tts_driver file MUST be present and MUST conform
+to the following structure.
+
+class TTSDriver:
+    voices = ["en_US-amy-medium.onnx",]
+
+    def __init__(self, service='default_name', voice='default_voice', api_key=None_or_FilePath):
+
+    def get_models(self):
+        return self.model_names
+
+    def transcribe(self, text, wav_filename):
+        wav_filename = "Config/tts_out/" + wav_filename
+       	# do transcription here, save to filename
+        return wav_filename
+
+In other words it MUST be of class TTSDriver and it MUST provide a
+transcribe() method which takes in a text string and produces a
+wav file in the directory "Config/tts_out" named wav_filename and
+it must contain a class variable named 'voices' which is a list of
+voices the tts driver supports. These will automatically show up 
+on the configuration screen.
+
+
+STT drivers are very similar. Here is an abbreviated version of the
+Whisper speech to text (STT) driver.
+
+class STTDriver:
+    model_names = ["tiny", "tiny.en", "base"]
+
+    def __init__(self, model='tiny.en', use_gpu=False, api_key=None):
+        self.device='cpu'
+        if str(use_gpu).lower() == 'true':
+            self.device='cuda'
+        self.model = whisper.load_model(self.model_name, device=self.device)
+
+    def get_models(self):
+        return self.model_names
+
+    def transcribe(self, wav_filename):
+        return self.model.transcribe(wav_filename, fp16=False, language='English')['text'].strip()
+</pre>
+<p>
+The system ships with the following drivers installed by default.
+<br/><br/><center>
+<table cellspacing=4 cellpadding=4 border=1>
+	<tr><td align=center><b>Local<br/>or<br/><u>Remote</u></b></td><td align=center><b>TTS<br/>or<br/><u>STT</u></b></td><td align=center><b><u>Name</u></b></td><td><b><u>Free</u></b><sup>*</sup></td><td><b><u>Description</u></b></td></tr>
+	<tr><td>Local</td><td>TTS</td><td>Piper</td><td>Yes</td><td>Piper is a lightweight TTS module from Rhasspy</td></tr>
+	<tr><td>Local</td><td>TTS</td><td>Coqui</td><td>Yes</td><td>eSpeak based classic TTS module from Coqui</td></tr>
+	<tr><td>Remote</td><td>TTS</td><td>Polly</td><td>No</td><td>Polly is a cloud based TTS API from Amazon</td></tr>
+	<tr><td>Remote</td><td>TTS</td><td>11Labs</td><td>No</td><td>Eleven labs offers excellent cloud based TTS</td></tr>
+	<tr><td>Local</td><td>STT</td><td>Whisper</td><td>Yes</td><td>Whisper provides excellent lightweight STT from OpenAI</td></tr>
+	<tr><td>Local</td><td>STT</td><td>Vosk</td><td>Yes</td><td>Vosk is a newer lightweight STT with a very small footprint</td></tr>
+	<tr><td>Remote</td><td>STT</td><td>Google</td><td>No</td><td>Google provides very good STT in the cloud</td></tr>
+	<tr><td>Remote</td><td>STT</td><td>OpenAI</td><td>No</td><td>OpenAI also provides very good cloud based STT API</td></tr>
+</table>
+ * - Note that all cloud based APIs offer free trial periods but most require a credit card to activate.
+</center>
+</p>
+<p>
+Adding new drivers is relatively easy and described in detail in the <a href="developer.html">developer documentation. </a>
+</p>
+
+<h1>System Requirements</h1>
+<p>
+YAVOS is a Linux application and can run on smaller devices if required. To run completely locally (Piper TTS, Vosk STT) requires less than 2GB of RAM (Vosk 500MB, Piper 1GB) and can run entirely on the CPU. A low end Raspberry Pi with 2GB of RAM should work fine. Requirements if you choose to run entirely remotely are as low as 500MB (using basic Post type APIs) and will run significantly faster, however, these services while offering free-trials are not technically free and could engender cost if used excessively which voice assistants tend to do.
+</p>
+<p>
+YAVOS has been tested on a Dell Laptop with an Nvidia Geoforce RTX 3050 (4GB VRAM), a Raspberry Pi II with 2GB of RAM and a MacBook Pro with 4GB of RAM. It has also been run on various Desktops and Laptops with and without a GPU. YAVOS is entirely configurable and it really does not have a bunch of other requirements however, it will obviously need to have a way to play and record audio. 
+<br/><br/>
+If remote devices like a remote microphone and a remote speaker are used (for example, a browser on a separate machine) then the local play and record utilities (aplay and arecord) are not used at all and do not even have to be present on the system. In this case only ffmpeg is required. For custom environments you would simply configure the specific commands to use whatever utilities you prefer (like maybe sox) using the configuration server. 
+
+<br/><br/>
+<center>
+<table cellspacing=4 cellpadding=4 border=1>
+	<tr><td><b><u>Utility</u></b></td><td><b><u>Function</u></b></td><td><b><u>Required</u></b></td><td><b><u>Comments</u></b></td></tr>
+	<tr><td>ffmpeg</td><td>Convert audio files</td><td>Only required if remote mic is used</td><td>Used by YAVOS and underlying libraries</td></tr>
+	<tr><td>aplay</td><td>Play wav files</td><td>Only required if local speaker is used</td><td>On OSX use afplay</td></tr>
+	<tr><td>arecord</td><td>Record voice to wav file</td><td>Only required if local mic is used</td><td>On OSX use afrecord</td></tr>
+	<tr><td>pactl</td><td>Adjust mic level</td><td>Optional</td><td>If missing you will need to set mic level manually</td></tr>
+	<tr><td>amixer</td><td>Adjust speaker volume</td><td>Optional</td><td>If missing you will need to set speaker volume manually</td></tr>
+</table>
+</center>
+<br/><br/>
+Other utilities may be used (like 'sox' or 'ffplay') but may require installation. The utilities listed above for Linux and OSX are typically installed by default as part of the native operating system
+
+</p>
+
+<h1>YAVOS Applications</h1>
+<p>
+YAVOS applications are somewhat limited in that they must provide solutions to many issues which are unique to a voice assistant application like 
+managing contention of the input (microphone) and output (speaker) channels. 
+</p>
+<p>
+In order to receive user spoken input, a YAVOS application must register on the message bus as the intent service. The <i>Intent Service</i> is the endpoint
+which receives <b>utterance messages</b>. The system wide message bus is a directed message bus with messages targeted to a specific endpoint, unlike some 
+message bus implementations where all messages are broadcast messages. 
+</p>
+<p>
+This is accomplished by providing the value 'intent_svc' as the bus id when the application connects to the message bus (see the example applications above).
+Once an application has connected to the message bus as the intent service it will start receiving utterance messages which are human spoken utterances.
+</p>
+
+<h2>Messages</h2>
+<p>
+All messages on the system message bus adhere to the following format
+
+<pre>
+msg_type - see message types below
+source - the bus id of the source of the message
+target - the bus id of the target of the message
+data - the data to be exchanged
+</pre>
+
+The system inserts an additional field named <b>'ts'</b> which will hold the timestamp for the message. Messages are encoded in JSON format. No binary data is exchanged over the <i>system message bus</i>, however, the audio input bus <i>does</i> transfer binary data. The <i>System Monitor</i> which is available from the main configuration server shows the messages from the system message bus in real-time. You may also look at the file in the <b>Config/</b> directory named <b>yavos.log</b> for additional information about the system.
+</p>
+
+<h2>Message Types</h2>
+<p>
+The base YAVOS system uses the following messages on the <i>system message bus</i>.
+<ul>
+	<li>MSG_WAV_OUT</li>
+	<li>MSG_AUDIO_OUT</li>
+	<li>MSG_WAV_IN</li>
+	<li>MSG_UTTERANCE</li>
+</ul>
+</p>
+
+<h3>MSG_WAV_OUT</h3>
+<p>
+<ul>
+	<li>Bus: audio out bus</li>
+	<li>from_skill_id: media_svc</li>
+	<li>skill_id: *</li>
+	<li>filename: name of the wav file to play</li>
+</ul>
+</p>
+<p>
+This message is produced by the media service. If a remote audio output device (speaker) is configured the media service will place this message on the audio output bus. It will be broadcast to all devices listening on the bus. 
+</p>
+
+<h3 id=msg_audio_out>MSG_AUDIO_OUT</h3>
+<p>
+<ul>
+	<li>Bus: system message bus</li>
+	<li>from_skill_id: tts_svc</li>
+	<li>skill_id: media_svc</li>
+	<li>filename: name of the wav file to play</li>
+</ul>
+</p>
+<p>
+The tts service produces a wav file from a text string but it sends a message to the media service to actually play it. 
+</p>
+
+<h3>MSG_WAV_IN</h3>
+<p>
+<ul>
+	<li>Bus: system message bus</li>
+	<li>from_skill_id: remote_recognizer or recognizer</li>
+	<li>skill_id: stt_svc</li>
+	<li>filename: name of the wav file which represents human speech</li>
+</ul>
+</p>
+<p>
+This message is produced by both the local recognizer and the remote recognizer which is part of the audio input bus when they have detected human voice. This is what is meant when it is said any device capable of performing silence detection (typically using webrtcvad) and connecting to a web socket server may serve as a remote smart microphone. 
+</p>
+<p>
+This message is consumed by the speech to text (STT) service who converts it to a text message which is subsequently placed on the system message bus with a target destination of 'intent_svc'. 
+</p>
+
+<h3>MSG_UTTERANCE</h3>
+<p>
+<ul>
+	<li>Bus: system message bus</li>
+	<li>from_skill_id: stt_svc</li>
+	<li>skill_id: intent_svc</li>
+	<li>utterance: a text string which a person spoke</li>
+</ul>
+</p>
+<p>
+This message is sent by the speech to text service each time a human utterance is recognized. It is always sent to the <i>intent_svc</i> endpoint.
+</p>
+
+<br/><br/>
+YAVOS Version 0.01b
+<br/><br/>
+	</body>
+</html>

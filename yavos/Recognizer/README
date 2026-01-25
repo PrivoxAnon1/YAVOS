@@ -1,0 +1,5 @@
+The purpose of the recognizer is to detect silence and create wav files from the active audio.
+
+A message is sent on the message bus targeting the speech to text service which
+uses the bus id of 'stt_svc'.
+

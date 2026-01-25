@@ -1,0 +1,131 @@
+{
+	"volume_skill":{
+		"skill_name": "Volume",
+		"skill_type": "PriVoice",
+		"developer":"YAVA",
+		"version": "1.0",
+		"description": "Controls volume of the output channel.",
+		"requires_internet": "false"
+	},
+	"time_and_date_skill":{
+		"skill_name": "Time and Date",
+		"skill_type": "PriVoice",
+		"developer":"YAVA",
+		"version": "1.0",
+		"description": "Handles time and date requests.",
+		"requires_internet": "false"
+	},
+	"weather_skill":{
+		"skill_name": "Weather",
+		"skill_type": "PriVoice",
+		"developer":"YAVA",
+		"version": "1.0",
+		"description": "Default weather skill.",
+		"requires_internet": "true"
+	},
+	"timer_skill":{
+		"skill_name": "Timers",
+		"skill_type": "PriVoice",
+		"developer":"YAVA",
+		"version": "1.0",
+		"description": "Provides support for audio timers.",
+		"requires_internet": "false"
+	},
+	"alarm_skill":{
+		"skill_name": "Alarms",
+		"skill_type": "PriVoice",
+		"developer":"YAVA",
+		"version": "1.0",
+		"description": "Provides support for audio alarms.",
+		"requires_internet": "false"
+	},
+	"music_skill":{
+		"skill_name": "Music",
+		"skill_type": "MediaSkill",
+		"developer":"YAVA",
+		"version": "1.0",
+		"description": "Play music.",
+		"requires_internet": "true"
+	},
+	"radio_skil":{
+		"skill_name": "Radio",
+		"skill_type": "MediaSkill",
+		"developer":"YAVA",
+		"version": "1.0",
+		"description": "Broadcast radio skill.",
+		"requires_internet": "true"
+	},
+	"email_skill":{
+		"skill_name": "Email",
+		"skill_type": "PriVoice",
+		"developer":"YAVA",
+		"version": "1.0",
+		"description": "Supports email.",
+		"requires_internet": "true"
+	},
+	"contact_skill":{
+		"skill_name": "Contacts",
+		"skill_type": "PriVoice",
+		"developer":"YAVA",
+		"version": "1.0",
+		"description": "Supports a contacts list.",
+		"requires_internet": "false"
+	},
+	"reminder_skill":{
+		"skill_name": "Reminders",
+		"skill_type": "PriVoice",
+		"developer":"YAVA",
+		"version": "1.0",
+		"description": "Provides reminders.",
+		"requires_internet": "false"
+	},
+	"recipe_skill":{
+		"skill_name": "Recipes",
+		"skill_type": "PriVoice",
+		"developer":"YAVA",
+		"version": "1.0",
+		"description": "Manage recipes.",
+		"requires_internet": "false"
+	},
+	"home_assistant_skill":{
+		"skill_name": "Home Assistant skill",
+		"skill_type": "PriVoice",
+		"developer":"YAVA",
+		"version": "1.0",
+		"description": "A skill to work with your Home Assistant server",
+		"requires_internet": "false"
+	},
+	"personal_assistant_skill":{
+		"skill_name": "Personal Assistant",
+		"skill_type": "fallback",
+		"developer":"YAVA",
+		"version": "1.0",
+		"description": "A personal assistant.",
+		"requires_internet": "false"
+	},
+	"duck_duck_go_skill":{
+		"skill_name": "Duck Duck Go",
+		"skill_type": "QuestionAnswerSkill",
+		"developer":"YAVA",
+		"version": "1.0",
+		"description": "Final fallback skill, by default.",
+		"requires_internet": "true"
+	},
+	"wiki_remote_skill":{
+		"skill_name": "Wiki (remote)",
+		"skill_type": "QuestionAnswerSkill",
+		"developer":"YAVA",
+		"version": "1.0",
+		"description": "A fallback skill which queries wikipedia.",
+		"requires_internet": "true"
+	},
+	"wiki_local_skill":{
+		"skill_name": "Wiki (local)",
+		"skill_type": "QuestionAnswerSkill",
+		"developer":"YAVA",
+		"version": "1.0",
+		"description": "A fallback skill which queries wikipedia.",
+		"requires_internet": "false"
+	}
+}
+
