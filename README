@@ -8,18 +8,20 @@ Introduction
 ------------
 
 YAVOS is an open source, privacy respecting framework which makes it easy to 
-develop voice enabled applications.
+develop voice enabled applications. It abstracts out the processing of wav 
+data and text to speech (TTS) and speech to text (STT) using a message bus
+(websocket server) for intra-process communication.
 
 YAVOS supports local or remote microphones and speakers and local or remote
 speech to text (STT) and text to speech (TTS) services enabling free STT and
-TTS for local, edge or cloud based devices.
+TTS for local, edge or cloud based operation.
 
 
 Installation
 ------------
 
 Assuming you have the yavos.tgz file in the current directory and this is where 
-you want to install the system run the following commands.
+you want to install the system run the following commands. 
 
 
 tar xzfv yavos.tgz
@@ -36,6 +38,7 @@ git clone git@github.com:PrivoxAnon1/YAVOS.git
 cd YAVOS
 
 ./install.sh
+
 
 
 Test the Install
@@ -57,6 +60,7 @@ This should echo whatever you say.
 Note - all commands are run from the base directory YAVOS/yavos/.
 
 
+
 Getting Started
 ---------------
 
@@ -65,7 +69,7 @@ on the server running YAVOS is used as well as the speaker connected to the
 YAVOS system. Additionally, all speech to text (STT) and text to speech (TTS)
 is performed locally. By default local STT is provided by Whisper or Vosk.
 For local TTS the default is Piper or Coqui. Additional modules are easily 
-added.
+added. All of these are automatically installed for you already. 
 
 These options may be changed by either directly editing the yava.yml file
 or by running the configuration server. The configuration server is a 
@@ -74,16 +78,26 @@ you to configure the system and provides additional functionality like
 monitoring the message bus or running the microphone and speaker from a 
 web browser.
 
-To run the config server from YAVOS/yavos/ run the following command
+Documentation is available on the configuration server as well.
+
+To run the configuration server from the 'YAVOS/yavos/' subdirectory run 
+the following command
 
 ./Scripts/run_config_srvr.sh
 
 Then bring up a browser and go to the default webpage on port 8000. Your URL
 should be http://localhost:8000 or whatever IP address the YAVOS host is 
-like http://192.168.1.10:8000 or http://10.0.0.20:8000 if you choose to run
-the configuration server on a separate machine. The system documentation is
-also available from the configuration server. Select 'Docs' from the main
-menu.
+running on, like 
+
+http://192.168.1.10:8000 
+
+or 
+
+http://10.0.0.20:8000 
+
+The system documentation is available from the configuration server main page. 
+Select 'Docs' from the mainmenu. Note if you change the default configuration 
+server port then you would change the URL in the above examples accordingly. 
 
 
 Configuring the System
@@ -104,16 +118,61 @@ Stopping the system
 ./Scripts/yava_stop.sh
 
 
+
+What To Expect
+--------------
+
+YAVOS has been tested on a variety of devices and operating systems. It is a 
+Linux based application and runs best on Ubuntu, but it also runs on OSX and
+Raspberry PIs as well as custom embedded devices. The fastest performance for
+embedded devices is obtained when using remote services to do the work. So 
+if you had a very small device but it had access to a mic and speaker you
+could configure it to use Google for STT and Amazon Polly for TTS and your 
+turn around time for both STT and TTS would be well under 2 seconds.
+
+Performance will vary based on hardware, operating system and technology used
+(Piper or Coqui for TTS, Whisper or Vosk for STT), however, when running 
+entirely locally, the following general observations have been observed.
+
+On a Raspberry Pi using local Whisper STT and Piper TTS you shoud expect 
+utterances of 2-3 seconds in length to turn around (STT then TTS) in about 
+3 seconds (1.5 STT, 1.5 TTS) and on a typical 6 core laptop turn around is
+under a second. Obviously if you use a GPU equipped desktop as an edge 
+device these numbers are closer to around 250 milliseconds. 
+
+When longer input is used (like 8 seconds of wav audio in each direction), 
+these numbers increase to about 6 seconds (pi) and 3 seconds (laptop).
+
+These numbers are based on using the CPU. YAVOS can also use a GPU if one
+is present and in that case turn around is usually under a second even
+for much longer input on nearly all devices.
+
+
 Notes:
 (1) If you choose to use a remote microphone you must install ffmpeg as this 
 utility is used to convert the webm files typically coming from a browser to
 wav format. ffmpeg is not required if you run the local recognizer.
 
+sudo apt install ffmpeg
+
 (2) OSX users must change the aplay command to afplay and the arecord command
 to afrecord (or rec) in the yava.yml file. This may be done by editing the file 
-directly or using the configuration server. 
+directly or using the configuration server. YAVOS assumes aplay and arecord by
+default. 
 
 (3) If you plan on using a remote microphone and remote speaker than you do 
-not need to worry about the play wav file (aplay) or record wav file (arecord)
-commands as they are only used when you run the speaker and microphone locally.
+not need to worry about the play wav file (aplay) or record wav (arecord) utilities
+as they are only used when you run the speaker and microphone locally.
+
+(4) The system is only private if you run STT and TTS locally. If you choose to 
+use remote services like Google or Amazon your privacy will be subject to their
+privacy policy. The log file Config/yavos.log stores your history locally. You
+may choose to purge this file periodically or set your log level to Error in
+which case very little if anything will be written to the log file.
+
+(5) If you choose to run the coqui local TTS text to speech driver you must 
+install epeak. Ubuntu users run.
+
+sudo apt install espeak-ng
+
 

@@ -1,0 +1,16 @@
+PyYAML
+websockets
+websocket-client
+numpy
+scipy
+piper-tts
+openai-whisper
+vosk
+simpletransformers
+webrtcvad
+requests
+google-cloud
+google-cloud-speech
+boto3
+openai
+coqui-tts
